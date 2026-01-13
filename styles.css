@@ -261,3 +261,26 @@ body {
   display: none !important;
 }
 
+.password-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-password {
+  background: none;
+  border: none;
+  color: #000;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle-password:hover {
+  text-decoration: underline;
+}
+
+input[type="file"] {
+  color: #000;
+}
+
