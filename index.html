@@ -49,15 +49,28 @@
         <!-- FORM -->
         <form id="uploadForm" class="upload-box">
 
-          <label class="field">
-            <span>Password</span>
-            <input
-              type="password"
-              name="password"
-              placeholder="Enter password"
-              required
-            />
-          </label>
+          <label class="field password-field">
+  <span>Password</span>
+
+  <div class="password-wrapper">
+    <input
+      type="password"
+      name="password"
+      id="passwordInput"
+      placeholder="Enter password"
+      required
+    />
+    <button
+      type="button"
+      id="togglePassword"
+      class="toggle-password"
+      aria-label="Show password"
+    >
+      Show
+    </button>
+  </div>
+</label>
+
 
           <div id="error-message" class="error-message hidden">
             Incorrect access password.
@@ -160,6 +173,16 @@
       errorBox.classList.remove("hidden");
     }
   });
+
+  const passwordInput = document.getElementById("passwordInput");
+const togglePassword = document.getElementById("togglePassword");
+
+togglePassword.addEventListener("click", () => {
+  const isHidden = passwordInput.type === "password";
+  passwordInput.type = isHidden ? "text" : "password";
+  togglePassword.textContent = isHidden ? "Hide" : "Show";
+});
+
 </script>
 
 </body>
