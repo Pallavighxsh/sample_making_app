@@ -237,3 +237,27 @@ body {
   line-height: 1.5;
   opacity: 0.9;
 }
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.error-message {
+  margin-top: 8px;
+  color: #b00020;
+  font-size: 14px;
+}
+
+.processing {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* --- Utility: hidden --- */
+.hidden {
+  display: none !important;
+}
+
