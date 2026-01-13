@@ -32,7 +32,7 @@ async def process_pdf_endpoint(
     # 🔐 Password check FIRST
     verify_password(password)
 
-    # Basic file validation (robust across browsers)
+    # Basic file validation
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
@@ -54,20 +54,27 @@ async def process_pdf_endpoint(
     input_path = os.path.join(TMP_DIR, f"{file_id}_input.pdf")
     output_path = os.path.join(TMP_DIR, f"{file_id}_output.pdf")
 
-    # Save uploaded PDF to /tmp
+    # Save uploaded PDF
     with open(input_path, "wb") as f:
         f.write(contents)
 
-    # Process PDF (input file is deleted inside pdf_utils)
-    process_pdf(input_path, output_path)
+    # Process PDF (catch intentional processing failures)
+    try:
+        process_pdf(input_path, output_path)
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
     # Ensure output file is deleted after response is sent
     background_tasks.add_task(os.remove, output_path)
 
-    # Return processed PDF
-    return FileResponse(
+    # Return processed PDF (DO NOT pass background_tasks here)
+    response = FileResponse(
         output_path,
         media_type="application/pdf",
         filename="processed.pdf",
-        background_tasks=background_tasks,
     )
+
+    return response
