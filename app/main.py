@@ -1,0 +1,73 @@
+import os
+import uuid
+
+from fastapi import (
+    FastAPI,
+    UploadFile,
+    File,
+    Form,
+    HTTPException,
+    BackgroundTasks,
+)
+from fastapi.responses import FileResponse
+
+from .pdf_utils import process_pdf
+from .auth import verify_password
+
+app = FastAPI()
+
+# Render-friendly temp directory
+TMP_DIR = "/tmp"
+
+# 200 MB upload limit (safe for 200–400 page textbooks)
+MAX_FILE_SIZE = 200 * 1024 * 1024  # bytes
+
+
+@app.post("/process-pdf")
+async def process_pdf_endpoint(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    password: str = Form(...)
+):
+    # 🔐 Password check FIRST
+    verify_password(password)
+
+    # Basic file validation (robust across browsers)
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF files are allowed.",
+        )
+
+    # Read file into memory
+    contents = await file.read()
+
+    # Enforce upload size limit
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail="File too large. Maximum allowed size is 200 MB.",
+        )
+
+    # Unique filenames to avoid collisions
+    file_id = str(uuid.uuid4())
+    input_path = os.path.join(TMP_DIR, f"{file_id}_input.pdf")
+    output_path = os.path.join(TMP_DIR, f"{file_id}_output.pdf")
+
+    # Save uploaded PDF to /tmp
+    with open(input_path, "wb") as f:
+        f.write(contents)
+
+    # Process PDF (input file is deleted inside pdf_utils)
+    process_pdf(input_path, output_path)
+
+    # Ensure output file is deleted after response is sent
+    background_tasks.add_task(os.remove, output_path)
+
+    # Return processed PDF
+    return FileResponse(
+        output_path,
+        media_type="application/pdf",
+        filename="processed.pdf",
+        background_tasks=background_tasks,
+    )

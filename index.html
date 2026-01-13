@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PHI Learning Sample Copy Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <header class="app-header">
+    <img src="images/PHI_White.png" alt="PHI Learning" class="logo left" />
+
+    <div class="header-text">
+      <h1>PHI Learning</h1>
+      <span>Editorial Tools & Resources</span>
+    </div>
+
+    <img src="images/EEE.png" alt="EEE" class="logo right" />
+  </header>
+
+  <main class="page-wrapper">
+    <section class="hero-card">
+
+      <div class="hero-inner">
+        <h2>
+          Sample Copy Generator
+        </h2>
+
+        <p class="hero-subtitle">
+          An editorial utility for preparing controlled, share-ready
+          textbook sample copies without altering their structure or intent.
+        </p>
+
+        <div class="hero-note how-to-use">
+  <ol class="howto-steps">
+    <li>Upload a textbook PDF (up to 200&nbsp;MB).</li>
+    <li>Pages 1–3 remain unchanged.</li>
+    <li>From page 4 onward, ~45% of pages are randomly blacked out.</li>
+    <li>The file is processed securely in one pass.</li>
+    <li>Download the processed PDF instantly.</li>
+  </ol>
+</div>
+
+
+        <form id="uploadForm" class="upload-box">
+          <label class="field">
+            <span>Password</span>
+            <input type="password" placeholder="Enter password" required />
+          </label>
+
+          <label class="field file-field">
+            <span>Select PDF</span>
+            <input type="file" accept="application/pdf" required />
+          </label>
+
+          <button type="submit" class="btn primary">
+            Process Now!
+          </button>
+        </form>
+
+        <div class="processing hidden">
+          <div class="spinner"></div>
+          <p>Processing, please wait...</p>
+        </div>
+
+        <a class="btn download hidden" href="#">
+          Download Processed PDF
+        </a>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p style="text-align: center;">
+      This tool helps to support careful circulation, review, and discussion without compromising the intergrity of the textbook contents.
+      For internal PHI Learning use only.
+    </p>
+    <p class="footer-muted">
+      PHI Learning · Editorial Systems
+    </p>
+  </footer>
+
+</div>
+
+<script>
+  const form = document.getElementById('uploadForm');
+  const processing = document.querySelector('.processing');
+  const downloadBtn = document.querySelector('.download');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    processing.classList.remove('hidden');
+
+    setTimeout(() => {
+      processing.classList.add('hidden');
+      downloadBtn.classList.remove('hidden');
+    }, 2800);
+  });
+</script>
+
+</body>
+</html>
