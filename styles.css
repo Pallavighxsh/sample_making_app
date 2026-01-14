@@ -1,5 +1,6 @@
 :root {
-  --bg-dark: #0b1b2b;
+  --bg-dark: #0b1b2b;        /* Hero card navy */
+  --yale-blue: #10263d;     /* Outer background */
   --pink: #ff8fb8;
   --hot-pink: #ff2f92;
   --text-light: #f6f8fb;
@@ -13,12 +14,13 @@
 
 body {
   margin: 0;
-  background: #10263d;
   font-family: 'Inter', sans-serif;
   color: var(--text-light);
-  background-color: #f4f4f2;
+
+  /* Yale-blue outer background */
+  background-color: var(--yale-blue);
   background-image:
-    radial-gradient(rgba(0,0,0,0.035) 1px, transparent 1px);
+    radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
   background-size: 4px 4px;
 }
 
@@ -134,6 +136,30 @@ body {
   background: rgba(255,255,255,0.9);
 }
 
+/* Password field */
+.password-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Show / Hide toggle — visible but blended */
+.toggle-password {
+  background: rgba(16, 38, 61, 0.08);
+  border: 1px solid rgba(16, 38, 61, 0.25);
+  border-radius: 6px;
+  color: #10263d;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  opacity: 0.85;
+}
+
+.toggle-password:hover {
+  background: rgba(16, 38, 61, 0.14);
+  opacity: 1;
+}
+
 /* Buttons */
 .btn {
   margin-top: 10px;
@@ -163,10 +189,11 @@ body {
 
 /* Processing */
 .processing {
-  margin-top: 36px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
 }
 
 .spinner {
@@ -197,9 +224,16 @@ body {
   font-size: 0.7rem;
 }
 
+/* Errors */
+.error-message {
+  margin-top: 8px;
+  color: #b00020;
+  font-size: 14px;
+}
+
 /* Utilities */
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 @keyframes spin {
@@ -218,8 +252,8 @@ body {
 
   .hero-card {
     padding: 36px 20px;
-    background: #ffffff;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    background: #0f2236; /* lighter than desktop hero */
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   }
 
   .upload-box {
@@ -227,68 +261,6 @@ body {
   }
 }
 
-.how-to-use {
-  text-align: left;
-  max-width: 520px;
-  margin: 0 auto;
-}
-
-.howto-steps {
-  padding-left: 1.2rem;
-  margin: 0;
-}
-
-.howto-steps li {
-  margin-bottom: 0.4rem;
-  line-height: 1.5;
-  opacity: 0.9;
-}
-
-.action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.error-message {
-  margin-top: 8px;
-  color: #b00020;
-  font-size: 14px;
-}
-
-.processing {
-  margin-top: 24px;
-  text-align: center;
-}
-
-/* --- Utility: hidden --- */
-.hidden {
-  display: none !important;
-}
-
-.password-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.toggle-password {
-  background: none;
-  border: none;
-  color: #1f3a5f; /* Yale-ish blue */
-  font-size: 0.8rem;
-  cursor: pointer;
-  padding: 0;
-  opacity: 0.8;
-}
-
-.toggle-password:hover {
-  opacity: 1;
-  text-decoration: underline;
-}
-
 input[type="file"] {
   color: #000;
 }
-
