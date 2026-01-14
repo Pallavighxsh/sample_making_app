@@ -4,7 +4,6 @@ import os
 
 
 def process_pdf(input_path: str, output_path: str, password: str | None = None) -> None:
-
     """
     Processes a PDF by blacking out ~45% of pages at random,
     excluding the first three pages.
@@ -12,22 +11,28 @@ def process_pdf(input_path: str, output_path: str, password: str | None = None) 
     Args:
         input_path (str): Path to uploaded PDF
         output_path (str): Path to save processed PDF
+        password (str | None): PDF password (if any)
     """
 
     # Open the PDF
     doc = fitz.open(input_path)
 
     # 🔐 Handle encrypted / permission-restricted PDFs
-   if doc.is_encrypted:
-    if not doc.authenticate(password or ""):
-        doc.close()
-        raise RuntimeError("INCORRECT_PASSWORD")
+    if doc.is_encrypted:
+        if not doc.authenticate(password or ""):
+            doc.close()
+            raise RuntimeError("INCORRECT_PASSWORD")
 
     total_pages = doc.page_count
 
     # If PDF is too short, just save as-is
     if total_pages <= 3:
-        doc.save(output_path)
+        doc.save(
+            output_path,
+            garbage=4,
+            deflate=True,
+            clean=True,
+        )
         doc.close()
         if os.path.exists(input_path):
             os.remove(input_path)
@@ -43,7 +48,12 @@ def process_pdf(input_path: str, output_path: str, password: str | None = None) 
 
     # Guard against zero
     if pages_to_blackout == 0:
-        doc.save(output_path)
+        doc.save(
+            output_path,
+            garbage=4,
+            deflate=True,
+            clean=True,
+        )
         doc.close()
         if os.path.exists(input_path):
             os.remove(input_path)
@@ -52,7 +62,7 @@ def process_pdf(input_path: str, output_path: str, password: str | None = None) 
     # Randomly select unique pages (no duplicates)
     blackout_pages = random.sample(
         processable_pages,
-        pages_to_blackout
+        pages_to_blackout,
     )
 
     # 🔹 Small optimization: process pages in order
@@ -72,8 +82,13 @@ def process_pdf(input_path: str, output_path: str, password: str | None = None) 
         )
         shape.commit()
 
-    # Save processed PDF
-    doc.save(output_path)
+    # Save processed PDF (optimized save)
+    doc.save(
+        output_path,
+        garbage=4,
+        deflate=True,
+        clean=True,
+    )
     doc.close()
 
     # Clean up uploaded file
