@@ -57,17 +57,22 @@ def process_pdf(input_path: str, output_path: str) -> None:
         pages_to_blackout
     )
 
-    # Black out selected pages
+    # 🔹 Small optimization: process pages in order
+    blackout_pages.sort()
+
+    # Black out selected pages (OPTIMIZED)
     for page_number in blackout_pages:
         page = doc.load_page(page_number)
         rect = page.rect
 
-        # Draw solid black rectangle over entire page
-        page.draw_rect(
-            rect,
+        # Use a Shape object (faster than page.draw_rect repeatedly)
+        shape = page.new_shape()
+        shape.draw_rect(rect)
+        shape.finish(
             color=(0, 0, 0),
             fill=(0, 0, 0),
         )
+        shape.commit()
 
     # Save processed PDF
     doc.save(output_path)
