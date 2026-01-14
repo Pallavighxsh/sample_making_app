@@ -145,14 +145,24 @@ body {
 
 /* Show / Hide toggle — visible but blended */
 .toggle-password {
-  background: rgba(16, 38, 61, 0.08);
-  border: 1px solid rgba(16, 38, 61, 0.25);
-  border-radius: 6px;
-  color: #10263d;
+  background: rgba(255, 47, 146, 0.15);
+  border: 1.5px solid var(--hot-pink);
+  color: var(--hot-pink);
+
   font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  padding: 6px 10px;
+  border-radius: 8px;
   cursor: pointer;
-  padding: 4px 8px;
-  opacity: 0.85;
+
+  box-shadow:
+    0 0 8px rgba(255, 47, 146, 0.6),
+    inset 0 0 6px rgba(255, 47, 146, 0.35);
+
+  transition: all 0.2s ease;
 }
 
 .toggle-password:hover {
