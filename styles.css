@@ -13,7 +13,7 @@
 
 body {
   margin: 0;
-  background: #0a1622;
+  background: #10263d;
   font-family: 'Inter', sans-serif;
   color: var(--text-light);
   background-color: #f4f4f2;
@@ -276,13 +276,15 @@ body {
 .toggle-password {
   background: none;
   border: none;
-  color: #000;
-  font-size: 13px;
+  color: #1f3a5f; /* Yale-ish blue */
+  font-size: 0.8rem;
   cursor: pointer;
   padding: 0;
+  opacity: 0.8;
 }
 
 .toggle-password:hover {
+  opacity: 1;
   text-decoration: underline;
 }
 
