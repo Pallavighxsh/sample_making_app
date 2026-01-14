@@ -27,9 +27,10 @@ MAX_FILE_SIZE = 200 * 1024 * 1024  # bytes
 async def process_pdf_endpoint(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    password: str = Form(...)
+    password: str = Form(...),          # 🔐 app-level password
+    pdf_password: str = Form(""),       # 🔐 PDF password (may be empty)
 ):
-    # 🔐 Password check FIRST
+    # 🔐 Validate app access password FIRST
     verify_password(password)
 
     # Basic file validation
@@ -58,10 +59,21 @@ async def process_pdf_endpoint(
     with open(input_path, "wb") as f:
         f.write(contents)
 
-    # Process PDF (catch intentional processing failures)
+    # Process PDF (catch intentional failures)
     try:
-        process_pdf(input_path, output_path)
+        process_pdf(input_path, output_path, pdf_password)
     except RuntimeError as e:
+        # Clean up input file on failure
+        if os.path.exists(input_path):
+            os.remove(input_path)
+
+        # Map known error to frontend-friendly message
+        if str(e) == "INCORRECT_PASSWORD":
+            raise HTTPException(
+                status_code=400,
+                detail="Incorrect PDF password",
+            )
+
         raise HTTPException(
             status_code=400,
             detail=str(e),
@@ -70,11 +82,9 @@ async def process_pdf_endpoint(
     # Ensure output file is deleted after response is sent
     background_tasks.add_task(os.remove, output_path)
 
-    # Return processed PDF (DO NOT pass background_tasks here)
-    response = FileResponse(
+    # Return processed PDF
+    return FileResponse(
         output_path,
         media_type="application/pdf",
         filename="processed.pdf",
     )
-
-    return response
