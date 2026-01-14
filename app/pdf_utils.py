@@ -1,54 +1,53 @@
 import fitz  # PyMuPDF
 import random
 import os
+import time
 
 
-BLACKOUT_RATIO = 0.40  # 🔥 40% blackout
+BLACKOUT_RATIO = 0.40
+
+# ⏱️ Soft execution budget (seconds)
+# Render free tier usually dies ~30s; stay WELL below
+TIME_BUDGET = 12.0
 
 
-def process_pdf(input_path: str, output_path: str, password: str | None = None) -> None:
+def process_pdf(input_path: str, output_path: str) -> None:
     """
-    Optimized PDF processing:
-    - Blacks out 40% of pages (excluding first 3)
-    - Minimizes save and compression cost
-    - Safe for large PDFs on low-memory instances
+    Time-aware PDF processing.
+
+    - Targets ~40% blackout
+    - Stops early if time budget is reached
+    - Always saves whatever work is done
+    - Lowest quality / fastest possible save
     """
+
+    start_time = time.monotonic()
 
     doc = fitz.open(input_path)
-
-    # 🔐 Handle encrypted PDFs
-    if doc.is_encrypted:
-        if not doc.authenticate(password or ""):
-            doc.close()
-            raise RuntimeError("INCORRECT_PASSWORD")
-
     total_pages = doc.page_count
 
-    # If nothing to process, save directly
     if total_pages <= 3:
         doc.save(output_path)
         doc.close()
         os.remove(input_path)
         return
 
-    # Pages eligible for blackout (0-indexed)
-    processable_pages = range(3, total_pages)
+    processable_pages = list(range(3, total_pages))
+    random.shuffle(processable_pages)
 
-    pages_to_blackout = int(BLACKOUT_RATIO * len(processable_pages))
+    target_blackouts = int(BLACKOUT_RATIO * len(processable_pages))
+    blacked_out = 0
 
-    if pages_to_blackout <= 0:
-        doc.save(output_path)
-        doc.close()
-        os.remove(input_path)
-        return
+    for page_number in processable_pages:
+        elapsed = time.monotonic() - start_time
 
-    # Randomly select pages
-    blackout_pages = sorted(
-        random.sample(processable_pages, pages_to_blackout)
-    )
+        # ⛔ Stop before Render can kill us
+        if elapsed >= TIME_BUDGET:
+            break
 
-    # 🔥 Draw blackout rectangles
-    for page_number in blackout_pages:
+        if blacked_out >= target_blackouts:
+            break
+
         page = doc.load_page(page_number)
         rect = page.rect
 
@@ -57,12 +56,14 @@ def process_pdf(input_path: str, output_path: str, password: str | None = None) 
         shape.finish(fill=(0, 0, 0))
         shape.commit()
 
-    # 🚀 FAST SAVE (key optimization)
+        blacked_out += 1
+
+    # 🚀 FASTEST + LOWEST QUALITY SAVE
     doc.save(
         output_path,
-        incremental=False,   # explicit full save
-        deflate=True,        # keep size reasonable
-        garbage=2            # avoid expensive cleanup passes
+        garbage=0,        # no cleanup
+        deflate=False,    # no compression (fastest)
+        clean=False,
     )
 
     doc.close()
