@@ -3,7 +3,8 @@ import random
 import os
 
 
-def process_pdf(input_path: str, output_path: str) -> None:
+def process_pdf(input_path: str, output_path: str, password: str | None = None) -> None:
+
     """
     Processes a PDF by blacking out ~45% of pages at random,
     excluding the first three pages.
@@ -17,13 +18,10 @@ def process_pdf(input_path: str, output_path: str) -> None:
     doc = fitz.open(input_path)
 
     # 🔐 Handle encrypted / permission-restricted PDFs
-    if doc.is_encrypted:
-        try:
-            # Many academic PDFs require this even with no password
-            doc.authenticate("")
-        except Exception:
-            doc.close()
-            raise RuntimeError("Encrypted PDF cannot be processed")
+   if doc.is_encrypted:
+    if not doc.authenticate(password or ""):
+        doc.close()
+        raise RuntimeError("INCORRECT_PASSWORD")
 
     total_pages = doc.page_count
 
