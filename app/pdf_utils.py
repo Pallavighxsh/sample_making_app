@@ -3,21 +3,20 @@ import random
 import os
 
 
+BLACKOUT_RATIO = 0.40  # 🔥 40% blackout
+
+
 def process_pdf(input_path: str, output_path: str, password: str | None = None) -> None:
     """
-    Processes a PDF by blacking out ~45% of pages at random,
-    excluding the first three pages.
-
-    Args:
-        input_path (str): Path to uploaded PDF
-        output_path (str): Path to save processed PDF
-        password (str | None): PDF password (if any)
+    Optimized PDF processing:
+    - Blacks out 40% of pages (excluding first 3)
+    - Minimizes save and compression cost
+    - Safe for large PDFs on low-memory instances
     """
 
-    # Open the PDF
     doc = fitz.open(input_path)
 
-    # 🔐 Handle encrypted / permission-restricted PDFs
+    # 🔐 Handle encrypted PDFs
     if doc.is_encrypted:
         if not doc.authenticate(password or ""):
             doc.close()
@@ -25,72 +24,46 @@ def process_pdf(input_path: str, output_path: str, password: str | None = None) 
 
     total_pages = doc.page_count
 
-    # If PDF is too short, just save as-is
+    # If nothing to process, save directly
     if total_pages <= 3:
-        doc.save(
-            output_path,
-            garbage=4,
-            deflate=True,
-            clean=True,
-        )
+        doc.save(output_path)
         doc.close()
-        if os.path.exists(input_path):
-            os.remove(input_path)
+        os.remove(input_path)
         return
 
-    # Pages are 0-indexed:
-    # Pages 0,1,2 -> keep unchanged
-    # Pages 3 onward -> eligible for blackout
-    processable_pages = list(range(3, total_pages))
+    # Pages eligible for blackout (0-indexed)
+    processable_pages = range(3, total_pages)
 
-    # Calculate number of pages to black out (~45%)
-    pages_to_blackout = int(0.45 * len(processable_pages))
+    pages_to_blackout = int(BLACKOUT_RATIO * len(processable_pages))
 
-    # Guard against zero
-    if pages_to_blackout == 0:
-        doc.save(
-            output_path,
-            garbage=4,
-            deflate=True,
-            clean=True,
-        )
+    if pages_to_blackout <= 0:
+        doc.save(output_path)
         doc.close()
-        if os.path.exists(input_path):
-            os.remove(input_path)
+        os.remove(input_path)
         return
 
-    # Randomly select unique pages (no duplicates)
-    blackout_pages = random.sample(
-        processable_pages,
-        pages_to_blackout,
+    # Randomly select pages
+    blackout_pages = sorted(
+        random.sample(processable_pages, pages_to_blackout)
     )
 
-    # 🔹 Small optimization: process pages in order
-    blackout_pages.sort()
-
-    # Black out selected pages (OPTIMIZED)
+    # 🔥 Draw blackout rectangles
     for page_number in blackout_pages:
         page = doc.load_page(page_number)
         rect = page.rect
 
-        # Use a Shape object (faster than page.draw_rect repeatedly)
         shape = page.new_shape()
         shape.draw_rect(rect)
-        shape.finish(
-            color=(0, 0, 0),
-            fill=(0, 0, 0),
-        )
+        shape.finish(fill=(0, 0, 0))
         shape.commit()
 
-    # Save processed PDF (optimized save)
+    # 🚀 FAST SAVE (key optimization)
     doc.save(
         output_path,
-        garbage=4,
-        deflate=True,
-        clean=True,
+        incremental=False,   # explicit full save
+        deflate=True,        # keep size reasonable
+        garbage=2            # avoid expensive cleanup passes
     )
-    doc.close()
 
-    # Clean up uploaded file
-    if os.path.exists(input_path):
-        os.remove(input_path)
+    doc.close()
+    os.remove(input_path)
