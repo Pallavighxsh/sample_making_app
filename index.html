@@ -124,19 +124,29 @@
 
 </div>
 
-<!-- SCRIPT -->
 <script>
   const form = document.getElementById("uploadForm");
   const processing = document.getElementById("processing");
   const errorBox = document.getElementById("error-message");
   const downloadBtn = document.getElementById("downloadBtn");
+  const submitBtn = form.querySelector("button[type='submit']");
+
+  let processingHintTimeout;
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Reset UI
     errorBox.classList.add("hidden");
     downloadBtn.classList.add("hidden");
     processing.classList.remove("hidden");
+    submitBtn.disabled = true;
+
+    // Perceived-wait reducer
+    processingHintTimeout = setTimeout(() => {
+      processing.querySelector("p").textContent =
+        "Still processing… large PDFs can take a moment.";
+    }, 2500);
 
     const formData = new FormData(form);
 
@@ -151,39 +161,56 @@
 
       if (!response.ok) {
         processing.classList.add("hidden");
+        submitBtn.disabled = false;
+        clearTimeout(processingHintTimeout);
 
-        if (response.status === 401) {
-          errorBox.classList.remove("hidden");
-          return;
-        }
+        // Try to extract FastAPI error message
+        let message = "Processing failed";
+        try {
+          const errData = await response.json();
+          if (errData.detail) message = errData.detail;
+        } catch (_) {}
 
-        throw new Error("Processing failed");
+        errorBox.textContent = message;
+        errorBox.classList.remove("hidden");
+        return;
       }
 
+      // ✅ Correct: PDF is binary
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
 
-      downloadBtn.href = url;
-      downloadBtn.classList.remove("hidden");
+      // Auto-download (no extra click)
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "processed.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+
       processing.classList.add("hidden");
+      submitBtn.disabled = false;
+      clearTimeout(processingHintTimeout);
 
     } catch (err) {
       processing.classList.add("hidden");
+      submitBtn.disabled = false;
+      clearTimeout(processingHintTimeout);
+
       errorBox.textContent = "Something went wrong. Please try again.";
       errorBox.classList.remove("hidden");
     }
   });
 
+  // Password toggle
   const passwordInput = document.getElementById("passwordInput");
-const togglePassword = document.getElementById("togglePassword");
+  const togglePassword = document.getElementById("togglePassword");
 
-togglePassword.addEventListener("click", () => {
-  const isHidden = passwordInput.type === "password";
-  passwordInput.type = isHidden ? "text" : "password";
-  togglePassword.textContent = isHidden ? "Hide" : "Show";
-});
-
+  togglePassword.addEventListener("click", () => {
+    const isHidden = passwordInput.type === "password";
+    passwordInput.type = isHidden ? "text" : "password";
+    togglePassword.textContent = isHidden ? "Hide" : "Show";
+  });
 </script>
-
-</body>
-</html>
